@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LEON RP - التقديم</title>
+    <style>
+        body {
+            background: #111;
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 { color: gold; font-size: 35px; }
+        .btn {
+            background: gold;
+            color: black;
+            border: none;
+            padding: 12px 30px;
+            font-size: 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+        .container {
+            max-width: 450px;
+            margin: 20px auto;
+            background: #222;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: right;
+        }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; color: gold; }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #444;
+            background: #333;
+            color: white;
+            box-sizing: border-box;
+        }
+        textarea { height: 90px; resize: vertical; }
+
+        /* منطقة الكاميرا */
+        .camera-box {
+            text-align: center;
+            background: #000;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid gold;
+            margin-bottom: 15px;
+        }
+        video, canvas {
+            width: 100%;
+            max-height: 200px;
+            border-radius: 5px;
+            background: #111;
+        }
+
+        /* رسائل النتيجة */
+        .result-box {
+            display: none;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .error { background: #5a1a1a; color: #ff6b6b; border: 1px solid red; }
+        .success { background: #1a5a2a; color: #6bff8b; border: 1px solid green; }
+    </style>
+</head>
+<body>
+
+    <!-- الواجهة الرئيسية -->
+    <div id="main-page">
+        <h1>🦁 LEON RP</h1>
+        <p>مرحباً بك في موقع التقديم لسيرفر LEON RP</p>
+        <button class="btn" onclick="startApp()">ابدأ التقديم والتحقق</button>
+    </div>
+
+    <!-- نموذج التقديم -->
+    <div id="form-page" class="container" style="display: none;">
+        <h2 style="color: gold; text-align: center; margin-top: 0;">نموذج التقديم والتحقق</h2>
+        
+        <!-- اختبار الكاميرا -->
+        <div class="camera-box">
+            <label style="text-align: center;">📷 التقاط صورة الوجه للاختبار</label>
+            <video id="webcam" autoplay playsinline></video>
+            <canvas id="canvas" style="display:none;"></canvas>
+            <button type="button" class="btn" style="padding: 5px 15px; font-size: 14px;" onclick="takeSnapshot()">التقاط الصورة</button>
+            <p id="cam-status" style="font-size: 12px; color: #aaa; margin-top: 5px;">يرجى السماح بالكاميرا والتقاط صورة</p>
+        </div>
+
+        <form onsubmit="processApplication(event)">
+            <div class="form-group">
+                <label>الاسم الحقيقي:</label>
+                <input type="text" id="real-name" required placeholder="أدخل اسمك الحقيقي الكامل">
+            </div>
+
+            <div class="form-group">
+                <label>اسم الشخصية (الاسم الواقعي داخل اللعبة):</label>
+                <input type="text" id="rp-name" required placeholder="أدخل اسم شخصيتك في السيرفر (مثل: John_Doe)">
+            </div>
+
+            <div class="form-group">
+                <label>العمر الحقيقي:</label>
+                <input type="number" id="age" required placeholder="أدخل عمرك الحقيقي">
+            </div>
+
+            <div class="form-group">
+                <label>قصة الشخصية (Roleplay Story):</label>
+                <textarea id="story" required placeholder="اكتب قصة شخصيتك بالتفصيل... (لا تقل عن 50 حرفاً)"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>سبب الانضمام:</label>
+                <textarea id="reason" required placeholder="لماذا تريد الانضمام للسيرفر؟"></textarea>
+            </div>
+
+            <button type="submit" class="btn" style="width: 100%;">إرسال التقديم</button>
+        </form>
+
+        <!-- صندوق عرض النتيجة (مقبول / مرفوض) -->
+        <div id="result" class="result-box"></div>
+    </div>
+
+    <script>
+        let hasPhoto = false;
+
+        // تشغيل الكاميرا
+        async function startApp() {
+            document.getElementById('main-page').style.display = 'none';
+            document.getElementById('form-page').style.display = 'block';
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                document.getElementById('webcam').srcObject = stream;
+            } catch (err) {
+                document.getElementById('cam-status').innerText = '❌ متعذر فتح الكاميرا، يرجى إعطاء الإذن للمتصفح.';
+                document.getElementById('cam-status').style.color = 'red';
+            }
+        }
+
+        // التقاط صورة من الكاميرا
+        function takeSnapshot() {
+            const video = document.getElementById('webcam');
+            const canvas = document.getElementById('canvas');
+            const context = canvas.getContext('2d');
+
+            if (video.srcObject) {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                
+                video.style.display = 'none';
+                canvas.style.display = 'block';
+                hasPhoto = true;
+                document.getElementById('cam-status').innerText = '✅ تم التقاط صورة الوجه بنجاح!';
+                document.getElementById('cam-status').style.color = '#6bff8b';
+            }
+        }
+
+        // معالجة التقديم وفحص الشروط
+        function processApplication(event) {
+            event.preventDefault();
+
+            const age = parseInt(document.getElementById('age').value);
+            const story = document.getElementById('story').value.trim();
+            const resultDiv = document.getElementById('result');
+
+            resultDiv.style.display = 'block';
+
+            // 1. فحص التقاط الصورة
+            if (!hasPhoto) {
+                resultDiv.className = 'result-box error';
+                resultDiv.innerHTML = '❌ فشل التقديم:<br> يرجى التقاط صورة للوجه عبر الكاميرا أولاً.';
+                return;
+            }
+
+            // 2. فحص السن (أقل من 18)
+            if (age < 18) {
+                resultDiv.className = 'result-box error';
+                resultDiv.innerHTML = '❌ تم رفض الطلب تلقائياً!<br> <b>سبب الرفض:</b> السن أقل من 18 سنة (غير مسموح بالانضمام).';
+                return;
+            }
+
+            // 3. فحص قصة الشخصية (لو أقل من 50 حرف يعتبر ضعف في القصة)
+            if (story.length < 50) {
+                resultDiv.className = 'result-box error';
+                resultDiv.innerHTML = '❌ تم رفض الطلب تلقائياً!<br> <b>سبب الرفض:</b> ضعف في قصة الشخصية (يجب كتابة تفاصيل أكثر).';
+                return;
+            }
+
+            // إذا تحققت جميع الشروط
+            resultDiv.className = 'result-box success';
+            resultDiv.innerHTML = '🎉 تم قبول التقديم بنجاح!<br> جارٍ مراجعة بياناتك من قبل الإدارة.';
+        }
+    </script>
+
+</body>
+</html>
