@@ -3,131 +3,177 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="google-site-verification" content="google0ada2f7d422b47ac.html" />
     <title>LEON RP - التقديم</title>
     <style>
         body {
-            background: #111;
-            color: white;
+            background-color: #0f0f0f;
+            color: #ffffff;
             font-family: Arial, sans-serif;
-            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
             margin: 0;
             padding: 20px;
         }
-        .container {
-            max-width: 500px;
-            margin: 0 auto;
-            background: #222;
-            padding: 20px;
-            border-radius: 15px;
-            border: 2px solid #ffcc00;
+        .form-container {
+            background-color: #181818;
+            border: 2px solid #d4af37;
+            border-radius: 10px;
+            padding: 25px;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
         }
         h2 {
-            color: #ffcc00;
+            text-align: center;
+            color: #d4af37;
+            margin-bottom: 5px;
         }
-        .camera-box {
-            position: relative;
-            width: 100%;
-            border: 2px solid #ffcc00;
-            border-radius: 10px;
-            overflow: hidden;
-            background: #000;
-            margin-bottom: 15px;
-        }
-        video {
-            width: 100%;
-            height: 350px;
-            object-fit: contain; /* الكاميرا كاملة بدون قص */
-            background: #000;
-        }
-        button {
-            background: #ffcc00;
-            color: #000;
-            border: none;
-            padding: 12px 25px;
-            font-weight: bold;
-            font-size: 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            margin-top: 10px;
-            width: 95%;
+        p.sub {
+            text-align: center;
+            color: #aaa;
+            font-size: 14px;
+            margin-bottom: 20px;
         }
         label {
             display: block;
-            text-align: right;
             margin-top: 15px;
-            margin-bottom: 5px;
+            color: #d4af37;
             font-weight: bold;
-            color: #ffcc00;
         }
         input, textarea {
-            width: 90%;
+            width: 100%;
             padding: 10px;
-            border-radius: 5px;
+            margin-top: 5px;
+            background-color: #252525;
             border: 1px solid #444;
-            background: #333;
-            color: white;
-            text-align: right;
-            font-family: Arial, sans-serif;
+            border-radius: 5px;
+            color: #fff;
+            box-sizing: border-box;
         }
-        textarea {
-            height: 100px;
-            resize: vertical;
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 25px;
+            background-color: #1e7e34;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        button:disabled {
+            background-color: #555;
+        }
+        .alert-text {
+            color: #ff4d4d;
+            font-size: 12px;
+            margin-top: 4px;
+            display: none;
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>نموذج التقديم والتحقق</h2>
-    
-    <div class="camera-box">
-        <video id="webcam" autoplay playsinline muted></video>
-    </div>
-    <button type="button" onclick="takeSnapshot()">📷 التقاط الصورة</button>
-    <p style="font-size: 12px; color: #aaa;">يرجى السماح بالكاميرا والتقاط صورة للتحقق</p>
+<div class="form-container">
+    <h2>LEON RP - التقديم</h2>
+    <p class="sub">قم بملء البيانات التالية بدقة لتقييم طلبك</p>
 
-    <hr style="border: 0.5px solid #444; margin: 20px 0;">
+    <form id="applyForm">
+        <label>الاسم الحقيقي:</label>
+        <input type="text" id="name" required placeholder="أدخل اسمك الحقيقي">
 
-    <label>الاسم الحقيقي:</label>
-    <input type="text" placeholder="أدخل اسمك الحقيقي الكامل">
+        <label>العمر:</label>
+        <input type="number" id="age" required placeholder="أدخل عمرك">
 
-    <label>العمر:</label>
-    <input type="number" placeholder="أدخل عمرك">
+        <label>اسمك في ديسكورد (Discord Username):</label>
+        <input type="text" id="discord" value="jooy0856_87924" required placeholder="مثال: user_123">
 
-    <label>اسم الشخصية الواقعي (داخل اللعبة):</label>
-    <input type="text" placeholder="مثل: John_Doe">
+        <label>اسم الشخصية داخل اللعبة (In-Game Character Name):</label>
+        <input type="text" id="ingameName" required placeholder="مثال: Jack Spencer">
 
-    <label>قصة الشخصية (Backstory):</label>
-    <textarea placeholder="اكتب قصة شخصيتك وتفاصيل حياتها داخل المدينة..."></textarea>
+        <label>قصة الشخصية (Backstory):</label>
+        <textarea id="story" rows="4" minlength="30" required placeholder="اكتب قصة شخصيتك باختصار (ممنوع النسخ واللصق)..."></textarea>
+        <span id="pasteWarning" class="alert-text">❌ غير مسموح بالنسخ واللصق! اكتب القصة بنفسك.</span>
 
-    <label>لماذا انضممت إلينا؟</label>
-    <textarea style="height: 60px;" placeholder="اكتب السبب هنا..."></textarea>
+        <label>لماذا انضممت إلينا؟</label>
+        <textarea id="reason" rows="3" required placeholder="سبب انضمامك للسيرفر..."></textarea>
 
-    <button type="submit" style="background: #28a745; color: white; margin-top: 25px;">إرسال التقديم</button>
+        <button type="submit" id="submitBtn">إرسال الطلب</button>
+    </form>
 </div>
 
 <script>
-    const video = document.getElementById('webcam');
+    const form = document.getElementById('applyForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const storyInput = document.getElementById('story');
+    const pasteWarning = document.getElementById('pasteWarning');
 
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        navigator.mediaDevices.getUserMedia({ 
-            video: { 
-                facingMode: "user" 
-            }, 
-            audio: false 
+    // رابط الـ Webhook الخاص بك
+    const webhookUrl = "https://discord.com/api/webhooks/1534035517350608966/eUEi6dpuco368NfG4qabpfTr6PkHBFafQsbwc96JFQY-CjqpxqKEq1iWd-nVUcmqtTKl";
+
+    // منع النسخ واللصق في قصة الشخصية
+    storyInput.addEventListener('paste', function(e) {
+        e.preventDefault();
+        pasteWarning.style.display = 'block';
+        alert("⚠️ غير مسموح بالنسخ واللصق في قصة الشخصية! يرجى كتابتها يدويًا.");
+    });
+
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        submitBtn.disabled = true;
+        submitBtn.innerText = "جاري الإرسال...";
+
+        const name = document.getElementById('name').value;
+        const age = document.getElementById('age').value;
+        const discord = document.getElementById('discord').value;
+        const ingameName = document.getElementById('ingameName').value;
+        const story = document.getElementById('story').value;
+        const reason = document.getElementById('reason').value;
+
+        const payload = {
+            content: "📩 **طلب تقديم جديد وصل!**",
+            embeds: [{
+                title: "📝 طلب تقديم جديد - LEON RP",
+                color: 13808727,
+                fields: [
+                    { name: "الاسم الحقيقي", value: name, inline: true },
+                    { name: "العمر", value: age, inline: true },
+                    { name: "حساب الديسكورد", value: discord, inline: false },
+                    { name: "اسم الشخصية باللعبة", value: ingameName, inline: false },
+                    { name: "قصة الشخصية (Backstory)", value: story, inline: false },
+                    { name: "سبب الانضمام", value: reason, inline: false }
+                ],
+                footer: { text: "نظام التقديم الآلي - LEON RP | Admin: jooy0856_87924" },
+                timestamp: new Date()
+            }]
+        };
+
+        fetch(webhookUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
         })
-        .then(function(stream) {
-            video.srcObject = stream;
-            video.play();
+        .then(response => {
+            if (response.ok) {
+                alert("تم إرسال طلبك بنجاح! ✅");
+                form.reset();
+                pasteWarning.style.display = 'none';
+            } else {
+                alert("حدث خطأ أثناء الإرسال، تأكد من صحة البيانات أو حاول لاحقاً. ❌");
+            }
         })
-        .catch(function(err) {
-            console.error("خطأ في تشغيل الكاميرا: ", err);
-            alert("تأكد من السماح للمتصفح بالوصول إلى الكاميرا.");
+        .catch(error => {
+            alert("حدث خطأ في الاتصال! ❌");
+        })
+        .finally(() => {
+            submitBtn.disabled = false;
+            submitBtn.innerText = "إرسال الطلب";
         });
-    } else {
-        alert("متصفحك لا يدعم تشغيل الكاميرا مباشرة.");
-    }
+    });
 </script>
 
 </body>
